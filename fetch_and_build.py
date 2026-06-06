@@ -51,7 +51,7 @@ def fetch_btc() -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 
 def compute_indicators(df: pd.DataFrame) -> dict:
-    close = df["Close"]
+    close = df["Close"].squeeze()  # Ensure it's a Series
     n = len(close)
 
     # RSI 14
@@ -78,7 +78,13 @@ def compute_indicators(df: pd.DataFrame) -> dict:
     bb_lower = bb_mid - 2 * bb_std
 
     # Volume (skip if all-zero, e.g. BTC doesn't always have it)
-    has_volume = "Volume" in df.columns and df["Volume"].sum() > 0
+    has_volume = False
+    if "Volume" in df.columns:
+        vol_col = df["Volume"]
+        if hasattr(vol_col, "iloc"):
+            vol_val = vol_col.iloc[-1]
+            if isinstance(vol_val, (int, float, np.number)):
+                has_volume = vol_val > 0
     if has_volume:
         vol = df["Volume"]
         vol_ma20 = vol.rolling(20).mean()
@@ -93,14 +99,14 @@ def compute_indicators(df: pd.DataFrame) -> dict:
 
     return dict(
         latest=latest, prev=prev, change=change, change_pct=change_pct,
-        rsi=rsi.iloc[-1],
-        ma25=ma25.iloc[-1], ma75=ma75.iloc[-1] if n >= 75 else None,
-        macd=macd_line.iloc[-1], signal=signal_line.iloc[-1],
-        macd_prev=macd_line.iloc[-2], signal_prev=signal_line.iloc[-2],
-        bb_upper=bb_upper.iloc[-1], bb_lower=bb_lower.iloc[-1],
-        bb_mid=bb_mid.iloc[-1],
-        vol_latest=vol.iloc[-1] if has_volume else None,
-        vol_ma20=vol_ma20.iloc[-1] if has_volume else None,
+        rsi=float(rsi.iloc[-1]),
+        ma25=float(ma25.iloc[-1]), ma75=float(ma75.iloc[-1]) if n >= 75 else None,
+        macd=float(macd_line.iloc[-1]), signal=float(signal_line.iloc[-1]),
+        macd_prev=float(macd_line.iloc[-2]), signal_prev=float(signal_line.iloc[-2]),
+        bb_upper=float(bb_upper.iloc[-1]), bb_lower=float(bb_lower.iloc[-1]),
+        bb_mid=float(bb_mid.iloc[-1]),
+        vol_latest=float(vol.iloc[-1]) if has_volume else None,
+        vol_ma20=float(vol_ma20.iloc[-1]) if has_volume else None,
     )
 
 
@@ -180,7 +186,7 @@ def generate_evidence(ind: dict, asset_name: str) -> dict:
 # ---------------------------------------------------------------------------
 
 def chart_data(df: pd.DataFrame) -> dict:
-    tail = df["Close"].tail(30)
+    tail = df["Close"].tail(30).squeeze()
     labels = [d.strftime("%m/%d") for d in tail.index]
     values = [round(float(v), 2) for v in tail.values]
     return {"labels": labels, "values": values}
