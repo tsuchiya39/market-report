@@ -61,18 +61,19 @@ def fetch_news(asset_name: str, ticker: str) -> list:
             "https://news.google.com/rss/headlines?hl=ja&gl=JP&ceid=JP:ja",  # Google News Japan
         ],
         "S&P 500": [
+            # Yahoo Finance は US market 専門で日本語ニュースソースなし
+            # S&P 500 は米国市場指数のため英語ニュースが最適
             "https://feeds.finance.yahoo.com/rss/2.0/headline?s=^GSPC",
-            "https://news.google.com/rss?hl=ja&gl=JP&ceid=JP:ja&topic=b",
         ],
         "BTC/USD": [
-            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=BTC-USD",
-            "https://cointelegraph.com/feed",
+            "https://www.coindeskjapan.com/feed/",  # CoinDesk Japan (日本語)
+            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=BTC-USD",  # Yahoo Finance (英語)
+            "https://cointelegraph.com/feed",  # CoinTelegraph (英語)
         ],
     }
 
     keywords = {
         "日経225": ["株", "相場", "市場"],
-        "S&P 500": ["dow", "nasdaq", "s&p"],
         "BTC/USD": ["bitcoin", "btc"],
     }
 

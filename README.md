@@ -120,14 +120,16 @@ on:
 
 RSS フィードから **6-8 件の最新ニュース** を自動取得（資産ごと）
 
-| 資産 | ニュースソース | 言語 |
-|-----|--------------|------|
-| 日経225 | Google News Japan Business | 日本語 |
-| S&P 500 | Yahoo Finance + Google News | 英語 |
-| BTC/USD | Yahoo Finance + CoinTelegraph | 英語 |
+| 資産 | ニュースソース | 言語 | 理由 |
+|-----|--------------|------|-----|
+| 🇯🇵 日経225 | Google News Japan Business | **日本語** | 日本の市場指数 |
+| 🇺🇸 S&P 500 | Yahoo Finance | **英語** | 米国市場は英語ニュース推奨 |
+| 🇯🇵 BTC/USD | CoinDesk Japan | **日本語** | 日本の暗号資産ニュース |
 
-✅ **Google News Japan API（無料）** を使用しているため、  
-日本語のニュースが日経225に表示されるようになりました！
+✨ **完全無料で高品質なニュースを提供！**
+- 日経225：Google News Japan（ビジネスカテゴリ）
+- BTC/USD：CoinDesk Japan（暗号資産専門誌）
+- S&P 500：Yahoo Finance（米国市場ニュース）
 
 ## テクニカル指標一覧
 
