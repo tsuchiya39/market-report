@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Daily Report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117; --card: #1a1d27; --border: #2a2d3a;
+    --text: #e2e8f0; --muted: #94a3b8; --green: #4ade80;
+    --red: #f87171; --blue: #60a5fa; --accent: #7c3aed;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+  header { background: linear-gradient(135deg, #1e1b4b 0%, #0f1117 100%); padding: 2rem 1rem; text-align: center; border-bottom: 1px solid var(--border); }
+  header h1 { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 700; letter-spacing: 0.05em; }
+  header p { color: var(--muted); margin-top: 0.4rem; font-size: 0.9rem; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 1rem; padding: 1.5rem; }
+  .card-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .price-row { display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .price { font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 700; }
+  .change { font-size: 1rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 0.4rem; }
+  .up { color: var(--green); background: rgba(74,222,128,0.12); }
+  .down { color: var(--red); background: rgba(248,113,113,0.12); }
+  .chart-wrap { position: relative; height: 180px; margin-bottom: 1.25rem; }
+  .evidence { margin-top: 0.5rem; }
+  .evidence h3 { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.5rem; }
+  .ev-list { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
+  .ev-list li { font-size: 0.82rem; padding: 0.45rem 0.7rem; border-radius: 0.4rem; line-height: 1.4; }
+  .ev-bull { background: rgba(74,222,128,0.08); border-left: 3px solid var(--green); }
+  .ev-bear { background: rgba(248,113,113,0.08); border-left: 3px solid var(--red); }
+  .ev-none { color: var(--muted); font-style: italic; }
+  .news-section { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+  .news-section h3 { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.5rem; }
+  .news-list { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+  .news-item { font-size: 0.75rem; padding: 0.6rem 0.7rem; border-radius: 0.4rem; background: rgba(96,165,250,0.08); border-left: 3px solid var(--blue); }
+  .news-item a { color: var(--blue); text-decoration: none; font-weight: 500; }
+  .news-item a:hover { text-decoration: underline; }
+  .news-item .date { color: var(--muted); font-size: 0.7rem; margin-top: 0.2rem; display: block; }
+  footer { text-align: center; padding: 2rem 1rem; color: var(--muted); font-size: 0.8rem; border-top: 1px solid var(--border); }
+  @media (max-width: 480px) { .card { padding: 1rem; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>📈 Market Daily Report</h1>
+  <p>最終更新: 2026-06-07 03:28 JST</p>
+</header>
+<div class="container">
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">🗼 日経225</div>
+      <div class="price-row">
+        <span class="price">66,588.12</span>
+        <span class="change down">-882.57 (-1.31%)</span>
+      </div>
+      <div class="chart-wrap"><canvas id="chart_N225"></canvas></div>
+      <div class="evidence">
+        <h3>🟢 強気シグナル</h3>
+        <ul class="ev-list"><li class="ev-bull">価格（66,588.12）が25日移動平均線（63,410.35）を上回っている。短期トレンドは強気。</li><li class="ev-bull">MACD（+2132.94）はシグナル（1956.26）を上回っており、強気継続。</li><li class="ev-bull">ボリンジャーバンド中央線（64,049.79）を上回っており、強気優勢。</li></ul>
+        <h3 style="margin-top:0.75rem">🔴 弱気シグナル</h3>
+        <ul class="ev-list"><li class="ev-bear">RSI 72.6 — 過買い水準（70超）。短期的な調整リスクあり。</li></ul>
+      </div>
+      <div class="news-section">
+        <h3>📰 関連ニュース</h3>
+        <ul class="news-list"><li class="news-item"><a href="https://news.google.com/rss/articles/CBMiZkFVX3lxTFAwdVExSXlHMmZzMnQxaTU5NVJFSElfSGhmZWJJWklybGFBUnF0RHhlY3ZfaGtJMmllTm9LcFZLRzNBZWI2SDNYLWdMS1R4NzVJZERoR0FSVVJ0aVFsVlYwamdEOThndw?oc=5" target="_blank" rel="noopener">栃木強殺で少年３人再逮捕、「俺は知らない」「バールで殴っていない」と容疑否認…主導役はＩＣＰＯが国際手配 - 読売新聞</a></li><li class="news-item"><a href="https://news.google.com/rss/articles/CBMiS0FVX3lxTE9WeG9rSnZoaVVqdzh4NWRtcTVvV3lQeGZWQnhPMFZuMjh1RXdKU2p2aWJ5MEJ3NFBPcVRjRWUtT2dYSWtsM1ExdTZ0cw?oc=5" target="_blank" rel="noopener">【速報】イランが弾道ミサイル7発発射と米中央軍 - 47NEWS</a></li><li class="news-item"><a href="https://news.google.com/rss/articles/CBMiakFVX3lxTE1KOGhMaXBtZ29oLXMzRVFyTHlCaHNGenNMbThFZi1IWF9VeGtwWW4zN3o3U19uQnExOXVqZl91ZEFOU29QSzdpTFBmT25BYjFwekYwT0pFSXBDbXJWbTdFZU4wUkdzYjYzeEHSAW9BVV95cUxPWTBMZWJlZzZkY1FoNVJKck84V3R4U3h4bHAyNzY5aE15RTdFYUpsQzNJbUdWM19HU2Nfakd4S19LLTltbmRrQUdxdzdUaUFiUUZGbUtLRHVUOVpiejZWZ3J2SThpTk5mc1B4d2VDYUU?oc=5" target="_blank" rel="noopener">【速報】宮崎県で「線状降水帯」発生の可能性　7日明け方～昼前　避難の検討や準備を(気象予報士 日直主任 2026年06月06日) - tenki.jp</a></li><li class="news-item"><a href="https://news.google.com/rss/articles/CBMiaEFVX3lxTFBVNU9jQlRCZ3dtRjAyWG5QRnJTRmFMQjk3dlAxVnR2b0JOQlVhYWZJTFlQRzh0dmhSeUhMRmFoZ0k0RUZoUWJwVHhQemVDTlNHeXdXbURGeHdYYW1NaS02U3Ryem51elR4?oc=5" target="_blank" rel="noopener">国民?検察?証拠は誰のもの 再審見直し、国会で新たな「障壁」 - 毎日新聞</a></li><li class="news-item"><a href="https://news.google.com/rss/articles/CBMidkFVX3lxTE9ObHlZb1FTNE1tTWpBVmphTE5hb0FZY0NCZENtZ1djOHA4UjNHS0F2ZW5WdExxMjQ0M2ptSGtvb2ZWMjFNV04tMmtmSEVrMVJIVUwybGQyczV0TVZIbzBlVGZWVGlXNHVUZnpHdTRZQnE4RXIwOGc?oc=5" target="_blank" rel="noopener">皇族数確保ようやく入り口 過去には「女系天皇」土壇場で凍結 3年政府報告書が出発点 - 産経ニュース</a></li><li class="news-item"><a href="https://news.google.com/rss/articles/CBMif0FVX3lxTE8xamw3Z09fM3Z5Tm5aSFdxVnZlN2pCYjBpdW5MRVItaDF6cV9PckMyQkV6NU5lSGNDb0U1MjBkU2RzVGttN1hycUpTQkwyc1h5bVVzbmlOVzlwSHBMV25vTzAySGZZRmV4Q2RmczdselZkOWc2WGQxUlRleV9CU3c?oc=5" target="_blank" rel="noopener">ゼレンスキー氏に高齢指摘されたプーチン氏「重要なのは能力」、「書簡の筆者」と嫌悪感…首脳会談の試み不発 - Yahoo!ニュース</a></li><li class="news-item"><a href="https://news.google.com/rss/articles/CBMidkFVX3lxTE5rRjNVUlUwd1BiTTBjM0Jub3dtRXdodVJraVhnTFUzSFZfejJsZjNQY19PZ0xhbnBYV242TXR5NHlIeGx4MU1GbUlGbU5Pc1dJbGZicURkMUY3VVdDc2FMV2tzUURWd2R5OW1SaHpNNGhLT3hqdWc?oc=5" target="_blank" rel="noopener">高市首相「大変喜ばしい」正式決定へ全力 「飛鳥・藤原の宮都」世界文化遺産への登録勧告 - 産経ニュース</a></li><li class="news-item"><a href="https://news.google.com/rss/articles/CBMif0FVX3lxTFBuYTgtSE1ZbUVnR252NHJlUURRWmIzNjZJV1ZvZ201M0hhN1Zfc01oZkY2b3lJMU4zcjAzYUhaeHpFZlpKRWU3RlBHMTVfY243UU1aaldSTWx3ajE2cjhJY2tYWWtsd2lhUlFfZHpzRHduWXhyNXFuRFJkSWxRckk?oc=5" target="_blank" rel="noopener">京都で行方不明の米大学生、日本の市民が捜索支援に加わる（CNN.co.jp） - Yahoo!ニュース</a></li></ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🇺🇸 S&P 500</div>
+      <div class="price-row">
+        <span class="price">7,383.74</span>
+        <span class="change down">-200.57 (-2.64%)</span>
+      </div>
+      <div class="chart-wrap"><canvas id="chart_GSPC"></canvas></div>
+      <div class="evidence">
+        <h3>🟢 強気シグナル</h3>
+        <ul class="ev-list"><li class="ev-none">シグナルなし</li></ul>
+        <h3 style="margin-top:0.75rem">🔴 弱気シグナル</h3>
+        <ul class="ev-list"><li class="ev-bear">価格（7,383.74）が25日移動平均線（7,439.30）を下回っている。短期トレンドは弱気。</li><li class="ev-bear">MACD（+98.27）はシグナル（120.26）を下回っており、弱気継続。</li><li class="ev-bear">ボリンジャーバンド中央線（7,479.51）を下回っており、弱気優勢。</li></ul>
+      </div>
+      <div class="news-section">
+        <h3>📰 関連ニュース</h3>
+        <ul class="news-list"><li class="news-item"><a href="https://www.fool.com/investing/2026/06/06/how-spacex-ipo-affect-sp-500-nasdaq-100/?.tsrc=rss" target="_blank" rel="noopener">Here's How SpaceX's IPO Will Affect S&P 500 and Nasdaq-100 Investors</a></li><li class="news-item"><a href="https://www.fool.com/investing/2026/06/06/pfizers-67-yield-looks-scary-but-the-dividend-stor/?.tsrc=rss" target="_blank" rel="noopener">Pfizer's 6.7% Yield Looks Scary -- but the Dividend Story Is Stronger Than It Se</a></li><li class="news-item"><a href="https://finance.yahoo.com/m/4e57fd62-a165-35ac-ab25-3c8bcc828d3c/dow-jones-futures%3A-what-to-do.html?.tsrc=rss" target="_blank" rel="noopener">Dow Jones Futures: What To Do As Market Rally Faces First Real Test; SpaceX IPO,</a></li><li class="news-item"><a href="https://www.fool.com/investing/2026/06/06/this-dividend-stock-has-gained-18-while-the-rest-o/?.tsrc=rss" target="_blank" rel="noopener">This Dividend Stock Has Gained 18% While the Rest of its Sector Went Nowhere. He</a></li><li class="news-item"><a href="https://finance.yahoo.com/markets/stocks/articles/citi-lifts-p-500-target-152823135.html?.tsrc=rss" target="_blank" rel="noopener">Citi lifts S&P 500 target to 8100 as AI boom fuels episodic earnings surge</a></li><li class="news-item"><a href="https://www.fool.com/investing/2026/06/06/two-of-the-hottest-japanese-stocks-should-you/?.tsrc=rss" target="_blank" rel="noopener">These Are Two of the Hottest Japanese Stocks. Should You Consider a $1,000 Inves</a></li><li class="news-item"><a href="https://www.fool.com/coverage/etfs/2026/06/06/which-is-the-better-artificial-intelligence-ai-etf-roundhill-s-chat-or-state-street-s-xlk/?.tsrc=rss" target="_blank" rel="noopener">Which Is the Better Artificial Intelligence (AI) ETF, Roundhill's CHAT or State </a></li><li class="news-item"><a href="https://www.proactiveinvestors.com/companies/news/1093547/fineqia-s-matteo-greco-on-crypto-market-outlook-icymi-1093547.html?.tsrc=rss" target="_blank" rel="noopener">Fineqia's Matteo Greco on crypto market outlook – ICYMI</a></li></ul>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">₿ BTC/USD</div>
+      <div class="price-row">
+        <span class="price">$60,544</span>
+        <span class="change down">$-3,252 (-5.10%)</span>
+      </div>
+      <div class="chart-wrap"><canvas id="chart_BTCUSD"></canvas></div>
+      <div class="evidence">
+        <h3>🟢 強気シグナル</h3>
+        <ul class="ev-list"><li class="ev-bull">RSI 11.2 — 過売り水準（30未満）。反発の可能性あり。</li><li class="ev-bull">ボリンジャーバンド下限（62,727.02）付近。反発期待。</li></ul>
+        <h3 style="margin-top:0.75rem">🔴 弱気シグナル</h3>
+        <ul class="ev-list"><li class="ev-bear">価格（60,544.18）が25日移動平均線（74,457.67）を下回っている。短期トレンドは弱気。</li><li class="ev-bear">価格が75日移動平均線（74,281.29）を下回っており、中長期トレンドは弱気。</li><li class="ev-bear">MACD（-3544.35）はシグナル（-1990.06）を下回っており、弱気継続。</li><li class="ev-bear">ボリンジャーバンド中央線（73,171.36）を下回っており、弱気優勢。</li></ul>
+      </div>
+      <div class="news-section">
+        <h3>📰 関連ニュース</h3>
+        <ul class="news-list"><li class="news-item"><a href="https://www.nadanews.com/354433/" target="_blank" rel="noopener">米雇用統計が予想を上回る、BTCは6万ドルを維持できるか──ビットコインETFの44億ドル流出に一服【価格分析】</a></li><li class="news-item"><a href="https://www.nadanews.com/354421/" target="_blank" rel="noopener">Zcashが48％急落──偽造ZECを無制限に作成できる重大脆弱性、Claude AIが発見支援【価格分析】</a></li><li class="news-item"><a href="https://www.nadanews.com/354405/" target="_blank" rel="noopener">恐怖のピークと買い手不在の市場 ── 投資家心理が試される「需給確認フェーズ」【BitTrade Market Weekly】</a></li><li class="news-item"><a href="https://www.nadanews.com/354395/" target="_blank" rel="noopener">ビットコイン市場を救うのは日本か ── ETF解禁がもたらす1兆円超の新規資金流入【エックスウィン】</a></li><li class="news-item"><a href="https://www.nadanews.com/354371/" target="_blank" rel="noopener">WIZE、SOL追加取得へ約2億円を調達</a></li><li class="news-item"><a href="https://www.nadanews.com/354383/" target="_blank" rel="noopener">CMEトップ、暗号資産無期限先物に強い懸念──個人投資家の高レバレッジリスクを警告</a></li><li class="news-item"><a href="https://www.nadanews.com/354346/" target="_blank" rel="noopener">SOL、18カ月ぶり安値に急落──ソラナ最大のDAT企業が3190万ドル相当をCoinbase Primeへ移動【価格分析】</a></li><li class="news-item"><a href="https://www.nadanews.com/354373/" target="_blank" rel="noopener">米大手銀、2027年前半にも共有型トークン化預金ネットワーク開始へ＝WSJ</a></li></ul>
+      </div>
+    </div>
+  </div>
+</div>
+<footer>Powered by yfinance &amp; CoinGecko &nbsp;|&nbsp; Data for informational purposes only.</footer>
+<script>
+const chartConfigs = [{"id": "chart_N225", "labels": ["04/21", "04/22", "04/23", "04/24", "04/27", "04/28", "04/30", "05/01", "05/07", "05/08", "05/11", "05/12", "05/13", "05/14", "05/15", "05/18", "05/19", "05/20", "05/21", "05/22", "05/25", "05/26", "05/27", "05/28", "05/29", "06/01", "06/02", "06/03", "06/04", "06/05"], "values": [59349.17, 59585.86, 59140.23, 59716.18, 60537.36, 59917.46, 59284.92, 59513.12, 62833.84, 62713.65, 62417.88, 62742.57, 63272.11, 62654.05, 61409.29, 60815.95, 60550.59, 59804.41, 61684.14, 63339.07, 65158.19, 64996.09, 64999.41, 64693.12, 66329.5, 66934.33, 66734.24, 68402.13, 67470.69, 66588.12]}, {"id": "chart_GSPC", "labels": ["04/24", "04/27", "04/28", "04/29", "04/30", "05/01", "05/04", "05/05", "05/06", "05/07", "05/08", "05/11", "05/12", "05/13", "05/14", "05/15", "05/18", "05/19", "05/20", "05/21", "05/22", "05/26", "05/27", "05/28", "05/29", "06/01", "06/02", "06/03", "06/04", "06/05"], "values": [7165.08, 7173.91, 7138.8, 7135.95, 7209.01, 7230.12, 7200.75, 7259.22, 7365.12, 7337.11, 7398.93, 7412.84, 7400.96, 7444.25, 7501.24, 7408.5, 7403.05, 7353.61, 7432.97, 7445.72, 7473.47, 7519.12, 7520.36, 7563.63, 7580.06, 7599.96, 7609.78, 7553.68, 7584.31, 7383.74]}, {"id": "chart_BTCUSD", "labels": ["05/08", "05/09", "05/10", "05/11", "05/12", "05/13", "05/14", "05/15", "05/16", "05/17", "05/18", "05/19", "05/20", "05/21", "05/22", "05/23", "05/24", "05/25", "05/26", "05/27", "05/28", "05/29", "05/30", "05/31", "06/01", "06/02", "06/03", "06/04", "06/05", "06/06"], "values": [80022.04, 80189.07, 80678.03, 82145.66, 81725.21, 80480.89, 79277.8, 81051.98, 79068.82, 78135.01, 77425.72, 76952.21, 76808.81, 77459.94, 77546.34, 75482.52, 76672.79, 76988.16, 77274.4, 75824.06, 74352.7, 73539.84, 73382.72, 73751.07, 73593.37, 71360.33, 66649.86, 64021.89, 63796.25, 60544.18]}];
+chartConfigs.forEach(function(cfg) {
+  const ctx = document.getElementById(cfg.id).getContext('2d');
+  const isUp = cfg.values[cfg.values.length - 1] >= cfg.values[0];
+  const color = isUp ? '#4ade80' : '#f87171';
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: cfg.labels,
+      datasets: [{ data: cfg.values, borderColor: color, borderWidth: 2,
+        pointRadius: 0, fill: true,
+        backgroundColor: isUp ? 'rgba(74,222,128,0.06)' : 'rgba(248,113,113,0.06)',
+        tension: 0.3 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+      scales: {
+        x: { ticks: { color: '#94a3b8', maxTicksLimit: 6, font: { size: 10 } }, grid: { color: '#2a2d3a' } },
+        y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: '#2a2d3a' } }
+      }
+    }
+  });
+});
+</script>
+</body>
+</html>
