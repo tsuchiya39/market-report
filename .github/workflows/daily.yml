@@ -1,0 +1,39 @@
+name: Daily Market Report
+
+on:
+  schedule:
+    - cron: '0 23 * * *'   # 23:00 UTC = 翌朝 08:00 JST
+  workflow_dispatch:         # 手動実行も可能
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install yfinance pandas numpy requests pytz
+
+      - name: Generate report
+        run: python fetch_and_build.py
+
+      - name: Commit and push index.html
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          # 変更がなければスキップ（--allow-empty は使わない）
+          git diff --cached --quiet && echo "No changes to commit." && exit 0
+          git commit -m "chore: update market report $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
