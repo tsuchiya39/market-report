@@ -5,7 +5,9 @@ import json
 import os
 import traceback
 from datetime import datetime, timezone, timedelta
+from urllib.parse import urljoin
 
+import feedparser
 import numpy as np
 import pandas as pd
 import pytz
@@ -44,6 +46,70 @@ def fetch_btc() -> pd.DataFrame:
     # CoinGecko sometimes returns the same day twice; keep last
     df = df[~df.index.duplicated(keep="last")]
     return df
+
+
+
+# ---------------------------------------------------------------------------
+# News fetching
+# ---------------------------------------------------------------------------
+
+def fetch_news(asset_name: str, ticker: str) -> list:
+    """Fetch relevant news for the asset. Returns list of dicts: {title, url, date}"""
+    rss_feeds = {
+        "日経225": [
+            "https://news.google.com/rss?hl=ja&gl=JP&ceid=JP:ja&topic=b",  # Google News Japan Business
+            "https://news.google.com/rss/headlines?hl=ja&gl=JP&ceid=JP:ja",  # Google News Japan
+        ],
+        "S&P 500": [
+            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=^GSPC",
+            "https://news.google.com/rss?hl=ja&gl=JP&ceid=JP:ja&topic=b",
+        ],
+        "BTC/USD": [
+            "https://feeds.finance.yahoo.com/rss/2.0/headline?s=BTC-USD",
+            "https://cointelegraph.com/feed",
+        ],
+    }
+
+    keywords = {
+        "日経225": ["株", "相場", "市場"],
+        "S&P 500": ["dow", "nasdaq", "s&p"],
+        "BTC/USD": ["bitcoin", "btc"],
+    }
+
+    news_items = []
+    asset_keywords = keywords.get(asset_name, [])
+
+    for feed_url in rss_feeds.get(asset_name, []):
+        try:
+            feed = feedparser.parse(feed_url)
+            for entry in feed.entries[:40]:
+                try:
+                    title = entry.get("title", "No title")
+                    link = entry.get("link", "")
+                    pub_date = entry.get("published", "")
+
+                    # Filter by keywords only for non-Nikkei feeds
+                    if asset_keywords and "google" in feed_url.lower() and asset_name != "日経225":
+                        if not any(kw.lower() in title.lower() for kw in asset_keywords):
+                            continue
+
+                    if title and link:
+                        news_items.append({
+                            "title": title[:100],
+                            "url": link,
+                            "date": pub_date,
+                        })
+                        if len(news_items) >= 8:
+                            break
+                except Exception:
+                    continue
+
+            if len(news_items) >= 8:
+                break
+        except Exception:
+            continue
+
+    return news_items[:8]
 
 
 # ---------------------------------------------------------------------------
@@ -231,6 +297,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .ev-bull {{ background: rgba(74,222,128,0.08); border-left: 3px solid var(--green); }}
   .ev-bear {{ background: rgba(248,113,113,0.08); border-left: 3px solid var(--red); }}
   .ev-none {{ color: var(--muted); font-style: italic; }}
+  .news-section {{ margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }}
+  .news-section h3 {{ font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 0.5rem; }}
+  .news-list {{ list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }}
+  .news-item {{ font-size: 0.75rem; padding: 0.6rem 0.7rem; border-radius: 0.4rem; background: rgba(96,165,250,0.08); border-left: 3px solid var(--blue); }}
+  .news-item a {{ color: var(--blue); text-decoration: none; font-weight: 500; }}
+  .news-item a:hover {{ text-decoration: underline; }}
+  .news-item .date {{ color: var(--muted); font-size: 0.7rem; margin-top: 0.2rem; display: block; }}
   footer {{ text-align: center; padding: 2rem 1rem; color: var(--muted); font-size: 0.8rem; border-top: 1px solid var(--border); }}
   @media (max-width: 480px) {{ .card {{ padding: 1rem; }} }}
 </style>
@@ -288,6 +361,10 @@ CARD_TEMPLATE = """    <div class="card">
         <h3 style="margin-top:0.75rem">🔴 弱気シグナル</h3>
         <ul class="ev-list">{bear_items}</ul>
       </div>
+      <div class="news-section">
+        <h3>📰 関連ニュース</h3>
+        <ul class="news-list">{news_items}</ul>
+      </div>
     </div>"""
 
 
@@ -305,6 +382,7 @@ def build_html(assets: list) -> str:
         ind = a["indicators"]
         ev = a["evidence"]
         cd = a["chart"]
+        news = a.get("news", [])
         is_btc = a["name"] == "BTC/USD"
 
         price_str = format_price(ind["latest"], is_btc)
@@ -315,6 +393,15 @@ def build_html(assets: list) -> str:
         bull_items = "".join(f'<li class="ev-bull">{e}</li>' for e in ev["bullish"]) or '<li class="ev-none">シグナルなし</li>'
         bear_items = "".join(f'<li class="ev-bear">{e}</li>' for e in ev["bearish"]) or '<li class="ev-none">シグナルなし</li>'
 
+        news_items = ""
+        if news:
+            for item in news[:8]:
+                title = item.get("title", "No title")[:80]
+                url = item.get("url", "#")
+                news_items += f'<li class="news-item"><a href="{url}" target="_blank" rel="noopener">{title}</a></li>'
+        else:
+            news_items = '<li class="news-item" style="border-left-color: #94a3b8; background: rgba(148,163,184,0.08);">ニュースを取得中...</li>'
+
         chart_id = f"chart_{a['ticker'].replace('^','').replace('/','')}"
         chart_configs.append({"id": chart_id, "labels": cd["labels"], "values": cd["values"]})
 
@@ -323,6 +410,7 @@ def build_html(assets: list) -> str:
             price_str=price_str, change_str=change_str, pct_str=pct_str,
             dir_class=dir_class, chart_id=chart_id,
             bull_items=bull_items, bear_items=bear_items,
+            news_items=news_items,
         ))
 
     return HTML_TEMPLATE.format(
@@ -355,8 +443,9 @@ def main():
             ind = compute_indicators(df)
             ev = generate_evidence(ind, a["name"])
             cd = chart_data(df)
-            results.append({**a, "indicators": ind, "evidence": ev, "chart": cd})
-            print(f"  -> {a['name']}: {ind['latest']:,.2f} ({ind['change_pct']:+.2f}%)")
+            news = fetch_news(a["name"], a["ticker"])
+            results.append({**a, "indicators": ind, "evidence": ev, "chart": cd, "news": news})
+            print(f"  -> {a['name']}: {ind['latest']:,.2f} ({ind['change_pct']:+.2f}%) | {len(news)} news items")
         except Exception:
             print(f"ERROR fetching {a['name']}:")
             traceback.print_exc()
